@@ -101,7 +101,7 @@ function App() {
         }`}
       >
         <div className="py-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">Content Remixer</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">Tweet That</h1>
           
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-8">
             <textarea
@@ -116,7 +116,7 @@ function App() {
               disabled={isLoading || !inputText.trim()}
               className="mt-4 w-full sm:w-auto px-6 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition-colors"
             >
-              {isLoading ? 'Remixing...' : 'Remix Content'}
+              {isLoading ? 'Remixing...' : 'Create Twitter Magic'}
             </button>
           </div>
           
