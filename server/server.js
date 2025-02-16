@@ -6,6 +6,7 @@ app.use(express.json())
 
 app.post('/api/remix', remixHandler)
 
-app.listen(3000, () => {
-  console.log('API server running on port 3000')
+const PORT = 3000
+app.listen(PORT, () => {
+  console.log(`API server running on port ${PORT}`)
 }) 
