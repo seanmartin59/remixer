@@ -1,9 +1,62 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from './supabaseClient'
 
 function App() {
   const [inputText, setInputText] = useState('')
   const [tweets, setTweets] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [savedTweets, setSavedTweets] = useState([])
+  const [showSidebar, setShowSidebar] = useState(true)
+
+  // Fetch saved tweets on component mount
+  useEffect(() => {
+    fetchSavedTweets()
+  }, [])
+
+  const fetchSavedTweets = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('saved_tweets')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      setSavedTweets(data)
+    } catch (error) {
+      console.error('Error fetching saved tweets:', error)
+    }
+  }
+
+  const handleSaveTweet = async (tweet) => {
+    try {
+      const { error } = await supabase
+        .from('saved_tweets')
+        .insert([{ content: tweet }])
+      
+      if (error) throw error
+      
+      // Refresh saved tweets list
+      fetchSavedTweets()
+    } catch (error) {
+      console.error('Error saving tweet:', error)
+    }
+  }
+
+  const handleDeleteSavedTweet = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('saved_tweets')
+        .delete()
+        .eq('id', id)
+      
+      if (error) throw error
+      
+      // Refresh saved tweets list
+      fetchSavedTweets()
+    } catch (error) {
+      console.error('Error deleting tweet:', error)
+    }
+  }
 
   const handleRemix = async () => {
     if (!inputText.trim()) return
@@ -35,9 +88,12 @@ function App() {
     window.open(`https://twitter.com/intent/tweet?text=${encodedTweet}`, '_blank');
   };
 
+  console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
+
   return (
-    <div className="min-h-screen bg-gray-100 w-full">
-      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 w-full max-w-[95%]">
+    <div className="min-h-screen bg-gray-100 w-full flex">
+      {/* Main content */}
+      <div className="flex-1 container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">Content Remixer</h1>
         
         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-8">
@@ -60,24 +116,68 @@ function App() {
         {tweets.length > 0 && (
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-gray-800">Generated Tweets:</h2>
-            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
               {tweets.map((tweet, index) => (
                 <div 
                   key={index}
                   className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow"
                 >
                   <p className="mb-4 text-gray-700 text-lg">{tweet}</p>
-                  <button
-                    onClick={() => handleTweet(tweet)}
-                    className="inline-flex items-center px-4 py-2 bg-[#1DA1F2] text-white font-medium rounded-lg hover:bg-[#1a8cd8] transition-colors"
-                  >
-                    Tweet This
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleTweet(tweet)}
+                      className="inline-flex items-center px-4 py-2 bg-[#1DA1F2] text-white font-medium rounded-lg hover:bg-[#1a8cd8] transition-colors"
+                    >
+                      Tweet This
+                    </button>
+                    <button
+                      onClick={() => handleSaveTweet(tweet)}
+                      className="inline-flex items-center px-4 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                      Save For Later
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
+      </div>
+
+      {/* Saved Tweets Sidebar */}
+      <div className={`fixed top-0 right-0 h-full w-80 bg-white shadow-lg transform transition-transform duration-300 ${showSidebar ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="p-4 h-full flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Saved Tweets</h2>
+            <button
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              {showSidebar ? '→' : '←'}
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {savedTweets.map((tweet) => (
+              <div key={tweet.id} className="p-4 border-b">
+                <p className="text-gray-700 mb-2">{tweet.content}</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleTweet(tweet.content)}
+                    className="text-sm px-3 py-1 bg-[#1DA1F2] text-white rounded hover:bg-[#1a8cd8]"
+                  >
+                    Tweet
+                  </button>
+                  <button
+                    onClick={() => handleDeleteSavedTweet(tweet.id)}
+                    className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
