@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 function App() {
   const [inputText, setInputText] = useState('')
-  const [outputText, setOutputText] = useState('')
+  const [tweets, setTweets] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
   const handleRemix = async () => {
@@ -19,14 +19,21 @@ function App() {
       })
       
       const data = await response.json()
-      setOutputText(data.remixedText)
+      setTweets(data.tweets)
     } catch (error) {
       console.error('Error remixing content:', error)
-      setOutputText('Error occurred while remixing content')
+      setTweets([])
     } finally {
       setIsLoading(false)
     }
   }
+
+  const handleTweet = (tweetText) => {
+    // Encode the tweet text for use in URL
+    const encodedTweet = encodeURIComponent(tweetText);
+    // Open Twitter web intent in new tab
+    window.open(`https://twitter.com/intent/tweet?text=${encodedTweet}`, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
@@ -48,9 +55,22 @@ function App() {
           {isLoading ? 'Remixing...' : 'Remix Content'}
         </button>
         
-        <div className="bg-white p-4 rounded-lg min-h-40 border">
-          <h2 className="text-lg font-semibold mb-2">Remixed Output:</h2>
-          <p className="whitespace-pre-wrap">{outputText}</p>
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Generated Tweets:</h2>
+          {tweets.map((tweet, index) => (
+            <div 
+              key={index}
+              className="bg-white p-4 rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+            >
+              <p className="mb-3">{tweet}</p>
+              <button
+                onClick={() => handleTweet(tweet)}
+                className="text-sm px-4 py-1 bg-[#1DA1F2] text-white rounded hover:bg-[#1a8cd8] transition-colors"
+              >
+                Tweet This
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </div>

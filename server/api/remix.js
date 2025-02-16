@@ -19,7 +19,11 @@ Since you are a ghost writer, you need to make sure to follow the style, tone, a
 
 Remember: Tweets cannot be longer than 280 characters.
 
-Please return the tweets in a list format, with each tweet being a separate item in the list.
+Please return the tweets in the following format:
+---TWEET---
+[Tweet content here]
+---END---
+[repeat for each tweet]
 
 Be sure to include at least 5 tweets.
 
@@ -48,8 +52,14 @@ export const handler = async function(req, res) {
         }]
       });
 
-      const remixedText = response.content[0].text;
-      res.status(200).json({ remixedText });
+      const rawText = response.content[0].text;
+      // Split the response into individual tweets
+      const tweets = rawText
+        .split('---TWEET---')
+        .slice(1) // Remove the first empty element
+        .map(tweet => tweet.split('---END---')[0].trim());
+
+      res.status(200).json({ tweets });
     } catch (anthropicError) {
       console.error('Anthropic API Error:', anthropicError);
       res.status(500).json({ 
