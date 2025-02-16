@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
+import { TwitterIcon, BookmarkIcon, PencilIcon, TrashIcon } from './components/Icons'
 
 function App() {
   const [inputText, setInputText] = useState('')
@@ -151,10 +152,7 @@ function App() {
               <h2 className="text-2xl font-semibold text-gray-800">Generated Tweets:</h2>
               <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
                 {tweets.map((tweet, index) => (
-                  <div 
-                    key={index}
-                    className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow"
-                  >
+                  <div key={index} className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow relative">
                     {editingTweet === `generated-${index}` ? (
                       <div className="mb-4">
                         <textarea
@@ -188,33 +186,36 @@ function App() {
                         </div>
                       </div>
                     ) : (
-                      <p className="mb-4 text-gray-700 text-lg">
-                        {tweet}
-                        <button
-                          onClick={() => {
-                            setEditingTweet(`generated-${index}`)
-                            setEditText(tweet)
-                          }}
-                          className="ml-2 text-blue-500 hover:text-blue-600"
-                        >
-                          ✎
-                        </button>
-                      </p>
+                      <>
+                        <p className="text-gray-700 text-lg pb-12">{tweet}</p>
+                        <div className="absolute bottom-4 right-4 flex gap-2">
+                          <button
+                            onClick={() => handleTweet(tweet)}
+                            className="p-2 text-white bg-[#1DA1F2] rounded-full hover:bg-[#1a8cd8] transition-colors"
+                            title="Tweet This"
+                          >
+                            <TwitterIcon className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleSaveTweet(tweet)}
+                            className="p-2 text-white bg-green-500 rounded-full hover:bg-green-600 transition-colors"
+                            title="Save For Later"
+                          >
+                            <BookmarkIcon className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingTweet(`generated-${index}`)
+                              setEditText(tweet)
+                            }}
+                            className="p-2 text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
+                            title="Edit Tweet"
+                          >
+                            <PencilIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </>
                     )}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleTweet(tweet)}
-                        className="inline-flex items-center px-4 py-2 bg-[#1DA1F2] text-white font-medium rounded-lg hover:bg-[#1a8cd8] transition-colors"
-                      >
-                        Tweet This
-                      </button>
-                      <button
-                        onClick={() => handleSaveTweet(tweet)}
-                        className="inline-flex items-center px-4 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition-colors"
-                      >
-                        Save For Later
-                      </button>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -245,7 +246,7 @@ function App() {
           </div>
           <div className="flex-1 overflow-y-auto">
             {savedTweets.map((tweet) => (
-              <div key={tweet.id} className="p-4 border-b">
+              <div key={tweet.id} className="p-4 border-b relative">
                 {editingTweet === tweet.id ? (
                   <div className="mb-2">
                     <textarea
@@ -273,34 +274,35 @@ function App() {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-gray-700 mb-2">
-                    {tweet.content}
-                    <button
-                      onClick={() => {
-                        setEditingTweet(tweet.id)
-                        setEditText(tweet.content)
-                      }}
-                      className="ml-2 text-blue-500 hover:text-blue-600"
-                    >
-                      ✎
-                    </button>
-                  </p>
-                )}
-                {!editingTweet && (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleTweet(tweet.content)}
-                      className="text-sm px-3 py-1 bg-[#1DA1F2] text-white rounded hover:bg-[#1a8cd8]"
-                    >
-                      Tweet
-                    </button>
-                    <button
-                      onClick={() => handleDeleteSavedTweet(tweet.id)}
-                      className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                  <>
+                    <p className="text-gray-700 pb-12">{tweet.content}</p>
+                    <div className="absolute bottom-4 right-4 flex gap-2">
+                      <button
+                        onClick={() => handleTweet(tweet.content)}
+                        className="p-2 text-white bg-[#1DA1F2] rounded-full hover:bg-[#1a8cd8] transition-colors"
+                        title="Tweet This"
+                      >
+                        <TwitterIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingTweet(tweet.id)
+                          setEditText(tweet.content)
+                        }}
+                        className="p-2 text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
+                        title="Edit Tweet"
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteSavedTweet(tweet.id)}
+                        className="p-2 text-white bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+                        title="Delete Tweet"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             ))}
