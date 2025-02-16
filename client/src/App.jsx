@@ -8,6 +8,8 @@ function App() {
   const [savedTweets, setSavedTweets] = useState([])
   const [showSidebar, setShowSidebar] = useState(true)
   const [savedTweetsVisible, setSavedTweetsVisible] = useState(true)
+  const [editingTweet, setEditingTweet] = useState(null)
+  const [editText, setEditText] = useState('')
 
   // Fetch saved tweets on component mount
   useEffect(() => {
@@ -89,6 +91,23 @@ function App() {
     window.open(`https://twitter.com/intent/tweet?text=${encodedTweet}`, '_blank');
   };
 
+  const handleSaveEdit = async (id, newContent) => {
+    try {
+      const { error } = await supabase
+        .from('saved_tweets')
+        .update({ content: newContent })
+        .eq('id', id)
+      
+      if (error) throw error
+      
+      setEditingTweet(null)
+      setEditText('')
+      fetchSavedTweets()
+    } catch (error) {
+      console.error('Error updating tweet:', error)
+    }
+  }
+
   console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL)
 
   return (
@@ -114,9 +133,16 @@ function App() {
             <button
               onClick={handleRemix}
               disabled={isLoading || !inputText.trim()}
-              className="mt-4 w-full sm:w-auto px-6 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition-colors"
+              className={`mt-4 w-full sm:w-auto px-6 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition-colors relative ${
+                isLoading ? 'pl-10' : ''
+              }`}
             >
-              {isLoading ? 'Remixing...' : 'Create Twitter Magic'}
+              {isLoading && (
+                <div className="absolute left-3 top-1/2 -mt-2 w-4 h-4">
+                  <div className="animate-spin w-full h-full border-2 border-white border-t-transparent rounded-full"/>
+                </div>
+              )}
+              {isLoading ? 'Making Magic' : 'Create Twitter Magic'}
             </button>
           </div>
           
@@ -129,7 +155,52 @@ function App() {
                     key={index}
                     className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <p className="mb-4 text-gray-700 text-lg">{tweet}</p>
+                    {editingTweet === `generated-${index}` ? (
+                      <div className="mb-4">
+                        <textarea
+                          value={editText}
+                          onChange={(e) => setEditText(e.target.value)}
+                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none mb-2"
+                          rows="3"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              const newTweets = [...tweets]
+                              newTweets[index] = editText
+                              setTweets(newTweets)
+                              setEditingTweet(null)
+                              setEditText('')
+                            }}
+                            className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingTweet(null)
+                              setEditText('')
+                            }}
+                            className="px-3 py-1 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mb-4 text-gray-700 text-lg">
+                        {tweet}
+                        <button
+                          onClick={() => {
+                            setEditingTweet(`generated-${index}`)
+                            setEditText(tweet)
+                          }}
+                          className="ml-2 text-blue-500 hover:text-blue-600"
+                        >
+                          ✎
+                        </button>
+                      </p>
+                    )}
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleTweet(tweet)}
@@ -175,21 +246,62 @@ function App() {
           <div className="flex-1 overflow-y-auto">
             {savedTweets.map((tweet) => (
               <div key={tweet.id} className="p-4 border-b">
-                <p className="text-gray-700 mb-2">{tweet.content}</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleTweet(tweet.content)}
-                    className="text-sm px-3 py-1 bg-[#1DA1F2] text-white rounded hover:bg-[#1a8cd8]"
-                  >
-                    Tweet
-                  </button>
-                  <button
-                    onClick={() => handleDeleteSavedTweet(tweet.id)}
-                    className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    Delete
-                  </button>
-                </div>
+                {editingTweet === tweet.id ? (
+                  <div className="mb-2">
+                    <textarea
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none mb-2"
+                      rows="3"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleSaveEdit(tweet.id, editText)}
+                        className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingTweet(null)
+                          setEditText('')
+                        }}
+                        className="px-3 py-1 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-700 mb-2">
+                    {tweet.content}
+                    <button
+                      onClick={() => {
+                        setEditingTweet(tweet.id)
+                        setEditText(tweet.content)
+                      }}
+                      className="ml-2 text-blue-500 hover:text-blue-600"
+                    >
+                      ✎
+                    </button>
+                  </p>
+                )}
+                {!editingTweet && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleTweet(tweet.content)}
+                      className="text-sm px-3 py-1 bg-[#1DA1F2] text-white rounded hover:bg-[#1a8cd8]"
+                    >
+                      Tweet
+                    </button>
+                    <button
+                      onClick={() => handleDeleteSavedTweet(tweet.id)}
+                      className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
