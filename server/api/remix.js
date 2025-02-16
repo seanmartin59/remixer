@@ -10,6 +10,22 @@ dotenv.config({ path: join(__dirname, '../../.env') });
 
 const anthropic = new Anthropic();
 
+const tweetSystemPrompt =`
+You are a social media expert and ghost writer. You work for a popular blogger.
+
+Your job is to take their blog post and come up with a variety of tweets that will capture attention and generate interest and engagement.
+
+Since you are a ghost writer, you need to make sure to follow the style, tone, and voice of the blog post.
+
+Remember: Tweets cannot be longer than 280 characters.
+
+Please return the tweets in a list format, with each tweet being a separate item in the list.
+
+Be sure to include at least 5 tweets.
+
+Do not include any hashtags or emojis.
+`
+
 export const handler = async function(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -25,10 +41,10 @@ export const handler = async function(req, res) {
       const response = await anthropic.messages.create({
         max_tokens: 1024,
         model: "claude-3-5-sonnet-20241022",
-        system: "You are a creative text remixer. Your goal is to make text more engaging while keeping the core meaning.",
+        system: tweetSystemPrompt,
         messages: [{
           role: "user",
-          content: `Please remix this text: ${text}`
+          content: `Here is the blog post: ${text}`
         }]
       });
 
