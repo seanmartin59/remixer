@@ -7,6 +7,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [savedTweets, setSavedTweets] = useState([])
   const [showSidebar, setShowSidebar] = useState(true)
+  const [savedTweetsVisible, setSavedTweetsVisible] = useState(true)
 
   // Fetch saved tweets on component mount
   useEffect(() => {
@@ -92,69 +93,84 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 w-full flex">
-      {/* Main content */}
-      <div className="flex-1 container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">Content Remixer</h1>
-        
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-8">
-          <textarea
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Paste your text here..."
-            className="w-full h-48 p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
-          />
+      {/* Main content - center with balanced margins */}
+      <div className={`flex-1 max-w-7xl mx-auto transition-all duration-300 
+        ${showSidebar 
+          ? 'pr-[calc(320px+2rem)] pl-8' 
+          : 'px-8'
+        }`}
+      >
+        <div className="py-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">Content Remixer</h1>
           
-          <button
-            onClick={handleRemix}
-            disabled={isLoading || !inputText.trim()}
-            className="mt-4 w-full sm:w-auto px-6 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition-colors"
-          >
-            {isLoading ? 'Remixing...' : 'Remix Content'}
-          </button>
-        </div>
-        
-        {tweets.length > 0 && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-800">Generated Tweets:</h2>
-            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
-              {tweets.map((tweet, index) => (
-                <div 
-                  key={index}
-                  className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <p className="mb-4 text-gray-700 text-lg">{tweet}</p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleTweet(tweet)}
-                      className="inline-flex items-center px-4 py-2 bg-[#1DA1F2] text-white font-medium rounded-lg hover:bg-[#1a8cd8] transition-colors"
-                    >
-                      Tweet This
-                    </button>
-                    <button
-                      onClick={() => handleSaveTweet(tweet)}
-                      className="inline-flex items-center px-4 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition-colors"
-                    >
-                      Save For Later
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-8">
+            <textarea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Paste your text here..."
+              className="w-full h-48 p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
+            />
+            
+            <button
+              onClick={handleRemix}
+              disabled={isLoading || !inputText.trim()}
+              className="mt-4 w-full sm:w-auto px-6 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 disabled:bg-gray-400 transition-colors"
+            >
+              {isLoading ? 'Remixing...' : 'Remix Content'}
+            </button>
           </div>
-        )}
+          
+          {tweets.length > 0 && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold text-gray-800">Generated Tweets:</h2>
+              <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+                {tweets.map((tweet, index) => (
+                  <div 
+                    key={index}
+                    className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <p className="mb-4 text-gray-700 text-lg">{tweet}</p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleTweet(tweet)}
+                        className="inline-flex items-center px-4 py-2 bg-[#1DA1F2] text-white font-medium rounded-lg hover:bg-[#1a8cd8] transition-colors"
+                      >
+                        Tweet This
+                      </button>
+                      <button
+                        onClick={() => handleSaveTweet(tweet)}
+                        className="inline-flex items-center px-4 py-2 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition-colors"
+                      >
+                        Save For Later
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Saved Tweets Sidebar */}
-      <div className={`fixed top-0 right-0 h-full w-80 bg-white shadow-lg transform transition-transform duration-300 ${showSidebar ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="p-4 h-full flex flex-col">
+      <div className={`fixed top-0 right-0 h-full bg-white shadow-lg transform transition-transform duration-300 flex ${showSidebar ? 'translate-x-0' : 'translate-x-[calc(100%-32px)]'}`}>
+        {/* Collapse/Expand button strip */}
+        <button
+          onClick={() => setShowSidebar(!showSidebar)}
+          className="h-full w-8 flex items-center justify-center bg-blue-500 hover:bg-blue-600 transition-colors group"
+          aria-label={showSidebar ? "Collapse sidebar" : "Expand sidebar"}
+        >
+          <div className="flex items-center justify-center rounded-full w-6 h-6 bg-white/10 group-hover:bg-white/20 transition-colors">
+            <span className="text-white text-lg">
+              {showSidebar ? '→' : '←'}
+            </span>
+          </div>
+        </button>
+
+        {/* Main sidebar content */}
+        <div className="w-80 p-4 h-full flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Saved Tweets</h2>
-            <button
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              {showSidebar ? '→' : '←'}
-            </button>
           </div>
           <div className="flex-1 overflow-y-auto">
             {savedTweets.map((tweet) => (
